@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mascotasnav"
+    app:startDestination="@id/listFragment">
+    <fragment
+        android:id="@+id/listFragment"
+        android:name="com.example.parcialdispositvos.Fragments.listFragment"
+        android:label="fragment_list"
+        tools:layout="@layout/fragment_list" >
+        <action
+            android:id="@+id/action_listFragment_to_addMasc"
+            app:destination="@id/addMasc" />
+        <action
+            android:id="@+id/action_listFragment_to_detalleMascota"
+            app:destination="@id/detalleMascota" />
+
+    </fragment>
+    <fragment
+        android:id="@+id/addMasc"
+        android:name="com.example.parcialdispositvos.Fragments.addMasc"
+        android:label="fragment_add_masc"
+        tools:layout="@layout/fragment_add_masc" >
+        <argument
+            android:name="userName"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_addMasc_to_listFragment"
+            app:destination="@id/listFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/detalleMascota"
+        android:name="com.example.parcialdispositvos.Fragments.DetalleMascota"
+        android:label="fragment_detalle_mascota"
+        tools:layout="@layout/fragment_detalle_mascota" >
+        <argument
+            android:name="identifier"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_detalleMascota_to_listFragment"
+            app:destination="@id/listFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/saludFragment"
+        android:name="com.example.parcialdispositvos.Fragments.SaludFragment"
+        android:label="fragment_salud"
+        tools:layout="@layout/fragment_salud" />
+    <fragment
+        android:id="@+id/ubicacionFragment"
+        android:name="com.example.parcialdispositvos.Fragments.UbicacionFragment"
+        android:label="fragment_ubicacion"
+        tools:layout="@layout/fragment_ubicacion" />
+
+</navigation>

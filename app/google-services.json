@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "943400055326",
+    "project_id": "finalandroid-7013b",
+    "storage_bucket": "finalandroid-7013b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:943400055326:android:54269b18b04ab0558af40f",
+        "android_client_info": {
+          "package_name": "com.example.parcialdispositvos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKUvNgbfB44gH29IKmyLoaL824Cc0DSFk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
