@@ -8,16 +8,9 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.navigation.findNavController
 import com.example.parcialdispositvos.Entities.Mascotas.Mascota
-import com.example.parcialdispositvos.Adapters.MascotaListAdapter
-//import com.example.parcialdispositvos.DataBase.Mascotas.MascotaDao
-//import com.example.parcialdispositvos.DataBase.DataBase
 import com.example.parcialdispositvos.Apis.check_empty
 import com.example.parcialdispositvos.Apis.send_message
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter
-import com.firebase.ui.firestore.FirestoreRecyclerOptions
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 
 
@@ -25,7 +18,7 @@ import com.google.firebase.ktx.Firebase
 
 import com.example.parcialdispositvos.R
 
-class addMasc : Fragment() {
+class AddMascFragment : Fragment() {
     lateinit var addMascview : View
 
     var listMascotas : MutableList<Mascota> = ArrayList()
@@ -43,7 +36,7 @@ class addMasc : Fragment() {
     var actualUser: String? = null
 
     companion object{
-        fun newInstance() = addMasc()
+        fun newInstance() = AddMascFragment()
     }
 
     override fun onCreateView(

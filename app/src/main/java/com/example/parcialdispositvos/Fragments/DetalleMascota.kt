@@ -16,6 +16,9 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import com.example.parcialdispositvos.Holder.MascotaHolder
+import com.google.firebase.storage.FirebaseStorage
+import android.net.Uri
+
 
 import com.example.parcialdispositvos.Entities.Mascotas.Mascota
 import com.example.parcialdispositvos.Apis.send_message
@@ -26,7 +29,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 class DetalleMascota : Fragment() {
 
     lateinit var MascotaDetalleView : View
-
 
 
     lateinit var img_raza_actual : ImageView
@@ -55,12 +57,11 @@ class DetalleMascota : Fragment() {
         btn_Modificar = MascotaDetalleView.findViewById(R.id.btn_det_Modificar)
         btn_Regresar = MascotaDetalleView.findViewById(R.id.btn_cat_Regresar)
         img_raza_actual = MascotaDetalleView.findViewById(R.id.img_CatActual)
-
-      // menu_bottom= MascotaDetalleView.findViewById(R.id.tb_bottom)
-        //menu_bottom.visibility= View.VISIBLE
-      //  nav_host = .findFragmentById(R.id.mascotasnav) as NavHostFragment
-        //NavigationUI.setupWithNavController(menu_bottom, nav_host.navController)
-
+        btn_Modificar.setOnClickListener {
+            enableEditingFields()
+            btn_Regresar.visibility= View.VISIBLE
+        }
+        btn_Regresar.visibility= View.INVISIBLE
 
         return MascotaDetalleView
     }
@@ -73,47 +74,13 @@ class DetalleMascota : Fragment() {
         //menu_bottom.visibility= View.VISIBLE
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+ /*   override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.toolbar, menu)
         super.onCreateOptionsMenu(menu, inflater)
+        enableEditingFields()
 
-    }
+    }*/
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
-
-        identifier = DetalleMascotaArgs.fromBundle(requireArguments()).identifier
-        when(item.itemId) {
-
-            R.id.action_editar -> {
-                edt_raza.isEnabled = true
-                edt_edad.isEnabled = true
-                edt_nombre.isEnabled = true
-                btn_Modificar.visibility = View.VISIBLE
-            }
-            R.id.action_eliminar -> {
-                val builder = AlertDialog.Builder(MascotaDetalleView.context)
-                builder.setMessage("Esta seguro que desea eliminar la mascota?")
-                    .setCancelable(false)
-                    .setPositiveButton("Si") { _, _ ->
-
-                      //  mascotaDao?.deleteMascota(mascotaDao?.loadMascotabyid(identifier!!))
-                        db.collection("prueba").document(identifier!!).delete()
-                        send_message(
-                            this.MascotaDetalleView,
-                            "Mascota  eliminada"
-                        )
-                        btn_Regresar.callOnClick()
-                    }
-                    .setNegativeButton("No") { dialog, _ ->
-                        dialog.dismiss()
-                    }
-                val alert = builder.create()
-                alert.show()
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
 
     override fun onStart() {
         super.onStart()
@@ -159,16 +126,7 @@ class DetalleMascota : Fragment() {
                     }
 
 
-                    btn_Modificar.setOnClickListener{
 
-                        val newMascota = Mascota(
-                            mascotactual.identifier  ,edt_edad.text.toString().toInt(),edt_nombre.text.toString(),edt_raza.text.toString(),mascotactual.nombredueno)
-                        db.collection("prueba").document(newMascota.nombre).set(newMascota)
-
-
-                        send_message(this.MascotaDetalleView, "Mascota modificada")
-                        btn_Regresar.callOnClick()
-                    }
 
                     // Log.d("Test", "DocumentSnapshot data: ${mascota.toString()}")
                 } else {
@@ -184,15 +142,71 @@ class DetalleMascota : Fragment() {
 
 
         btn_Regresar.setOnClickListener{
-            //setHasOptionsMenu(false)
-            val action =DetalleMascotaDirections.actionDetalleMascotaToListFragment()
-           MascotaDetalleView.findNavController().navigate(action)
+            storeModifiedValues()
+            //val action =DetalleMascotaDirections.actionDetalleMascotaToListFragment()
+           //MascotaDetalleView.findNavController().navigate(action)
         }
 
 
 
 
     }
+    private fun enableEditingFields() {
+        identifier = DetalleMascotaArgs.fromBundle(requireArguments()).identifier
 
+        // Enable editing fields
+        edt_raza.isEnabled = true
+        edt_edad.isEnabled = true
+        edt_nombre.isEnabled = true
+
+        // Show "Modificar" button
+        btn_Modificar.visibility = View.VISIBLE
+    }
+
+    private fun storeModifiedValues() {
+        // Store modified values into the mascotactual object
+        val edad = edt_edad.text.toString().toIntOrNull() ?: 0  // Default value is 0 if conversion fails
+        val updates = hashMapOf<String, Any>(
+            "nombre" to edt_nombre.text.toString(),
+            "raza" to edt_raza.text.toString(),
+            "edad" to edad
+        )
+
+        db.collection("prueba").document(mascotactual.nombre)
+            .update(updates)
+            .addOnSuccessListener {
+                // Update successful
+                send_message(this.MascotaDetalleView, "Mascota modificada")
+            }
+            .addOnFailureListener { e ->
+                // Handle any errors
+                Log.e(TAG, "Error updating document", e)
+                Toast.makeText(requireContext(), "Failed to update Mascota: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    companion object {
+        private const val TAG = "DetalleMascotaFragment"
+    }
+
+    private fun uploadImage(imageUri: Uri) {
+        val storageRef = FirebaseStorage.getInstance().reference
+        val imagesRef = storageRef.child("images/${mascotactual.nombre}")
+
+        val uploadTask = imagesRef.putFile(imageUri)
+
+        uploadTask.addOnSuccessListener { taskSnapshot ->
+            Log.d(TAG, "Image uploaded successfully")
+            // Get the download URL of the uploaded image
+            imagesRef.downloadUrl.addOnSuccessListener { uri ->
+                val imageUrl = uri.toString()
+                // Now, you can store this URL in your Mascota object and in your database
+                // For example, you can update the Mascota document with this URL
+                //updateMascotaImageUrl(imageUrl)
+            }
+        }.addOnFailureListener { exception ->
+            Log.e(TAG, "Error uploading image", exception)
+        }
+    }
 
 }

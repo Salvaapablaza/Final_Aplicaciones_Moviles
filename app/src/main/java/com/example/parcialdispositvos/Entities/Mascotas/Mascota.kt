@@ -16,6 +16,8 @@ class Mascota (identifier:String,edad: Int, nombre: String, raza: String, nombre
 
     var raza: String
 
+    var imageUrl: String? = null
+
     constructor() : this("",0,"","","")
 
     init{
@@ -24,6 +26,7 @@ class Mascota (identifier:String,edad: Int, nombre: String, raza: String, nombre
         this.nombre = nombre
         this.nombredueno = nombredueno
         this.raza = raza
+        //this.imageUrl = imageUrl
     }
 
 

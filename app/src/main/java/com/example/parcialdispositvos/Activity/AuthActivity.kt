@@ -1,87 +1,11 @@
-//package com.example.parcialdispositvos.Activity
-//
-//import android.app.AlertDialog
-//import android.content.Intent
-//import androidx.appcompat.app.AppCompatActivity
-//import android.os.Bundle
-//import com.example.parcialdispositvos.R
-//import com.google.firebase.auth.FirebaseAuth
-//import kotlinx.android.synthetic.main.activity_auth.*
-/////import kotlinx.parcelize.Parcelize
-//
-//
-//
-//class AuthActivity : AppCompatActivity() {
-//
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        setContentView(R.layout.activity_auth)
-//
-//        setup()
-//
-//    }
-//
-//    private fun setup(){
-//
-//        btn_Registrar.setOnClickListener {
-//            if( (edt_User.length() > 0) && (edt_Password.length() > 0) ) {
-//
-//                FirebaseAuth.getInstance().createUserWithEmailAndPassword(edt_User.text.toString(),edt_Password.text.toString()).addOnCompleteListener {
-//
-//                    if(it.isSuccessful){
-////                        ShowAlert()
-//
-//                        val intent = Intent(this,MainActivity::class.java)
-//                        startActivity(intent)
-//                    }
-//                    else
-//                    {
-//                       ShowAlert()
-//
-//                    }
-//                }
-//            }
-//        }
-//
-//
-//        btn_Ingresar.setOnClickListener {
-//            if( (edt_User.length() > 0) && (edt_Password.length() > 0) ) {
-//
-//                FirebaseAuth.getInstance().signInWithEmailAndPassword(edt_User.text.toString(),
-//                    edt_Password.text.toString()).addOnCompleteListener {
-//
-//                    if(it.isSuccessful){
-//                        val intent = Intent(this, MainActivity::class.java).apply {
-//                            putExtra("usuario",edt_User.text.toString())
-//                        }
-//                        startActivity(intent)
-//                    }
-//                    else{
-//                        ShowAlert()
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-//    fun ShowAlert(){
-//        val builder = AlertDialog.Builder(this)
-//        builder.setTitle("Error")
-//        builder.setMessage("Se ha producido un error autenticando al usuario")
-//        builder.setPositiveButton("Aceptar", null)
-//        val dialog: AlertDialog = builder.create()
-//        dialog.show()
-//    }
-//}
-//
-//
-//
+
 package com.example.parcialdispositvos.Activity
 
 import android.app.AlertDialog
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import com.example.parcialdispositvos.databinding.ActivityAuthBinding
 import com.google.firebase.auth.FirebaseAuth
 
@@ -111,15 +35,21 @@ class AuthActivity : AppCompatActivity() {
                         showAlert()
                     }
                 }
+            }else {
+                showErrorDialog("Por favor, ingrese usuario y contraseña para crear al usuario.")
             }
+
         }
 
         binding.btnIngresar.setOnClickListener {
             if (binding.edtUser.text.isNotEmpty() && binding.edtPassword.text.isNotEmpty()) {
+                showProgressBar()
+
                 FirebaseAuth.getInstance().signInWithEmailAndPassword(
                     binding.edtUser.text.toString(),
                     binding.edtPassword.text.toString()
                 ).addOnCompleteListener { task ->
+                    hideProgressBar()
                     if (task.isSuccessful) {
                         val intent = Intent(this, MainActivity::class.java).apply {
                             putExtra("usuario", binding.edtUser.text.toString())
@@ -129,7 +59,10 @@ class AuthActivity : AppCompatActivity() {
                         showAlert()
                     }
                 }
+            }else {
+                showErrorDialog("Por favor, ingrese usuario y contraseña.")
             }
+
         }
     }
 
@@ -140,5 +73,20 @@ class AuthActivity : AppCompatActivity() {
         builder.setPositiveButton("Aceptar", null)
         val dialog: AlertDialog = builder.create()
         dialog.show()
+    }
+    private fun showErrorDialog(message: String) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Error")
+        builder.setMessage(message)
+        builder.setPositiveButton("Aceptar", null)
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+    }
+    private fun showProgressBar() {
+        binding.progressBar.visibility = View.VISIBLE
+    }
+
+    private fun hideProgressBar() {
+        binding.progressBar.visibility = View.INVISIBLE
     }
 }
