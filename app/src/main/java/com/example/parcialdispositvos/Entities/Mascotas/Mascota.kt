@@ -1,33 +1,11 @@
+
 package com.example.parcialdispositvos.Entities.Mascotas
 
-
-
-
-class Mascota (identifier:String,edad: Int, nombre: String, raza: String, nombredueno: String) {
-
-
-    var identifier: String
-
-    var edad: Int
-
-    var nombre: String
-
-    var nombredueno: String
-
-    var raza: String
-
+class Mascota (
+    var identifier: String = "",
+    var edad: Int = 0,
+    var nombre: String = "",
+    var raza: String = "",
+    var nombredueno: String = "",
     var imageUrl: String? = null
-
-    constructor() : this("",0,"","","")
-
-    init{
-        this.identifier = identifier
-        this.edad = edad
-        this.nombre = nombre
-        this.nombredueno = nombredueno
-        this.raza = raza
-        //this.imageUrl = imageUrl
-    }
-
-
-}
+)

@@ -10,16 +10,16 @@
         android:label="fragment_list"
         tools:layout="@layout/fragment_list" >
         <action
-            android:id="@+id/action_listFragment_to_addMasc"
-            app:destination="@id/addMasc" />
+            android:id="@+id/action_listFragment_to_AddMascFragment"
+            app:destination="@id/AddMascFragment" />
         <action
             android:id="@+id/action_listFragment_to_detalleMascota"
             app:destination="@id/detalleMascota" />
 
     </fragment>
     <fragment
-        android:id="@+id/addMasc"
-        android:name="com.example.parcialdispositvos.Fragments.addMasc"
+        android:id="@+id/AddMascFragment"
+        android:name="com.example.parcialdispositvos.Fragments.AddMascFragment"
         android:label="fragment_add_masc"
         tools:layout="@layout/fragment_add_masc" >
         <argument

@@ -19,6 +19,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import com.example.parcialdispositvos.Holder.MascotaHolder
+import com.example.parcialdispositvos.Fragments.AddMascFragment
 
 
 class listFragment : Fragment() {
@@ -60,7 +61,7 @@ class listFragment : Fragment() {
 
         val usuario = activity?.intent?.getStringExtra("usuario")
         btnAdd.setOnClickListener {
-            var action = listFragmentDirections.actionListFragmentToAddMasc(usuario!!)
+            var action = listFragmentDirections.actionListFragmentToAddMascFragment(usuario!!)
             v.findNavController().navigate(action)
         }
 
@@ -74,7 +75,7 @@ class listFragment : Fragment() {
 
         val usuario = activity?.intent?.getStringExtra("usuario")
         val rootRef = FirebaseFirestore.getInstance()
-        val query = rootRef.collection("prueba").whereEqualTo("nombredueno",usuario)//
+        val query = rootRef.collection("prueba_img").whereEqualTo("nombredueno",usuario)//
 
         val options = FirestoreRecyclerOptions.Builder<Mascota>()
             .setQuery(query, Mascota::class.java)

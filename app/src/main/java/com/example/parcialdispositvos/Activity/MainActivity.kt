@@ -7,7 +7,12 @@ import androidx.appcompat.widget.Toolbar
 import androidx.navigation.fragment.NavHostFragment
 import com.example.parcialdispositvos.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
-
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.FirebaseApp
+import com.google.firebase.storage.ktx.storage
 class MainActivity : AppCompatActivity() {
 
     lateinit var  menu_bottom : BottomNavigationView
@@ -16,18 +21,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        FirebaseApp.initializeApp(this)
+        val storageReference = Firebase.storage("gs://finalandroid-7013b.appspot.com").reference
 
        menu_bottom= findViewById(R.id.tb_bottom)
        menu_bottom.visibility= View.GONE
-       // nav_host = supportFragmentManager.findFragmentById(R.id.mascotasnav) as NavHostFragment
-       // NavigationUI.setupWithNavController(menu_bottom, nav_host.navController)
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-
-
-
-
 
 
     }

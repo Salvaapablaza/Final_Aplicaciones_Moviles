@@ -1,49 +1,42 @@
+
 package com.example.parcialdispositvos.Fragments
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.*
-import androidx.appcompat.app.AlertDialog
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.NavigationUI
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter
-import com.firebase.ui.firestore.FirestoreRecyclerOptions
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
-import com.google.firebase.ktx.Firebase
-import com.example.parcialdispositvos.Holder.MascotaHolder
-import com.google.firebase.storage.FirebaseStorage
-import android.net.Uri
-
-
-import com.example.parcialdispositvos.Entities.Mascotas.Mascota
+import com.bumptech.glide.Glide
 import com.example.parcialdispositvos.Apis.send_message
-
+import com.example.parcialdispositvos.Entities.Mascotas.Mascota
 import com.example.parcialdispositvos.R
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+
 
 class DetalleMascota : Fragment() {
 
-    lateinit var MascotaDetalleView : View
+    private lateinit var uploadedImageUrl: String
 
+    private lateinit var MascotaDetalleView: View
+    private lateinit var img_raza_actual: ImageView
+    private lateinit var edt_nombre: EditText
+    private lateinit var edt_raza: EditText
+    private lateinit var edt_edad: EditText
+    private lateinit var btn_Modificar: Button
+    private lateinit var btn_Regresar: Button
+    lateinit var imageButton: ImageButton
+    private lateinit var btn_Eliminar: Button
 
-    lateinit var img_raza_actual : ImageView
-
-    lateinit var edt_nombre : EditText
-    lateinit var edt_raza : EditText
-    lateinit var edt_edad : EditText
-    lateinit var  menu_bottom : BottomNavigationView
-    lateinit var nav_host : NavHostFragment
-    var mascotactual = Mascota()
-
-    lateinit var btn_Modificar : Button
-    lateinit var btn_Regresar : Button
-    var identifier: String? =null
-    var db = Firebase.firestore
+    private var mascotactual = Mascota()
+    private var identifier: String? = null
+    var selectedImageUri: Uri? = null
+    lateinit var storageRef: StorageReference
+    private val db = FirebaseFirestore.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -57,41 +50,26 @@ class DetalleMascota : Fragment() {
         btn_Modificar = MascotaDetalleView.findViewById(R.id.btn_det_Modificar)
         btn_Regresar = MascotaDetalleView.findViewById(R.id.btn_cat_Regresar)
         img_raza_actual = MascotaDetalleView.findViewById(R.id.img_CatActual)
-        btn_Modificar.setOnClickListener {
-            enableEditingFields()
-            btn_Regresar.visibility= View.VISIBLE
-        }
-        btn_Regresar.visibility= View.INVISIBLE
+        btn_Eliminar = MascotaDetalleView.findViewById(R.id.btn_Eliminar)
+        imageButton = MascotaDetalleView.findViewById(R.id.imageButton2)
+        storageRef = FirebaseStorage.getInstance().reference
+
+        btn_Regresar.visibility = View.INVISIBLE
+        btn_Eliminar.visibility = View.INVISIBLE
+        imageButton.visibility = View.INVISIBLE
 
         return MascotaDetalleView
     }
-
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        //menu_bottom= MascotaDetalleView.findViewById(R.id.tb_bottom)
-        //menu_bottom.visibility= View.VISIBLE
-    }
-
- /*   override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.toolbar, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-        enableEditingFields()
-
-    }*/
-
 
     override fun onStart() {
         super.onStart()
         identifier = DetalleMascotaArgs.fromBundle(requireArguments()).identifier
 
-
-        var docRef = db.collection("prueba").document(identifier!!)
+        val docRef = db.collection("prueba_img").document(identifier!!)
         docRef.get()
             .addOnSuccessListener { dataSnapshot ->
                 if (dataSnapshot != null) {
-                    mascotactual  = dataSnapshot.toObject(Mascota::class.java)!!
+                    mascotactual = dataSnapshot.toObject(Mascota::class.java)!!
                     edt_nombre.setText(mascotactual.nombre)
                     edt_nombre.isEnabled = false
                     edt_raza.setText(mascotactual.raza)
@@ -100,35 +78,7 @@ class DetalleMascota : Fragment() {
                     edt_edad.isEnabled = false
                     btn_Modificar.visibility = View.VISIBLE
 
-
-                    when(mascotactual.raza.uppercase()){
-                        "PERRO"-> {
-                            img_raza_actual.setImageResource(R.mipmap.mila)
-
-                        }
-                        "BOXER"-> {
-                            img_raza_actual.setImageResource(R.mipmap.mila)
-
-                        }
-                        "LABRADOR"-> {
-                            img_raza_actual.setImageResource(R.mipmap.labrador)
-
-                        }
-                        "GATO"-> {
-                            img_raza_actual.setImageResource(R.mipmap.gato)
-
-                        }
-                        "PASTOR"-> {
-                            img_raza_actual.setImageResource(R.mipmap.pastor)
-
-                        }
-                        else-> img_raza_actual.setImageResource(R.mipmap.otras)
-                    }
-
-
-
-
-                    // Log.d("Test", "DocumentSnapshot data: ${mascota.toString()}")
+                    loadMascotaImage(mascotactual.imageUrl)
                 } else {
                     Log.d("Test", "No such document")
                 }
@@ -136,43 +86,48 @@ class DetalleMascota : Fragment() {
             .addOnFailureListener { exception ->
                 Log.d("Test", "get failed with ", exception)
             }
-
-
-
-
-
-        btn_Regresar.setOnClickListener{
-            storeModifiedValues()
-            //val action =DetalleMascotaDirections.actionDetalleMascotaToListFragment()
-           //MascotaDetalleView.findNavController().navigate(action)
+        btn_Modificar.setOnClickListener {
+            enableEditingFields()
+            btn_Regresar.visibility = View.VISIBLE
+            btn_Eliminar.visibility = View.VISIBLE
+            imageButton.visibility = View.VISIBLE
+        }
+        btn_Eliminar.setOnClickListener {
+            deleteMascota()
         }
 
-
-
-
+        imageButton.setOnClickListener {
+            modifyMascotaImage()
+        }
+        btn_Regresar.setOnClickListener {
+            storeModifiedValues()
+        }
     }
+
     private fun enableEditingFields() {
         identifier = DetalleMascotaArgs.fromBundle(requireArguments()).identifier
 
-        // Enable editing fields
+        // Habilito la modificacion de los campos
         edt_raza.isEnabled = true
         edt_edad.isEnabled = true
         edt_nombre.isEnabled = true
 
-        // Show "Modificar" button
+        // Muestro el boton de modificar
         btn_Modificar.visibility = View.VISIBLE
     }
 
     private fun storeModifiedValues() {
-        // Store modified values into the mascotactual object
-        val edad = edt_edad.text.toString().toIntOrNull() ?: 0  // Default value is 0 if conversion fails
+        // Hago update de la mascota con los datos nuevos
+
+        val edad = edt_edad.text.toString().toIntOrNull() ?: 0  // Si la conversion falla el valor es 0
         val updates = hashMapOf<String, Any>(
             "nombre" to edt_nombre.text.toString(),
             "raza" to edt_raza.text.toString(),
-            "edad" to edad
-        )
+            "edad" to edad,
+       )
 
-        db.collection("prueba").document(mascotactual.nombre)
+
+        db.collection("prueba_img").document(mascotactual.nombre)
             .update(updates)
             .addOnSuccessListener {
                 // Update successful
@@ -185,28 +140,79 @@ class DetalleMascota : Fragment() {
             }
     }
 
+    private fun loadMascotaImage(imageUrl: String?) {
+        if (!imageUrl.isNullOrEmpty()) {
+            // Cargo la imageview con Glide
+            Glide.with(this)
+                .load(imageUrl)
+                .into(img_raza_actual)
+        }
+    }
+
     companion object {
         private const val TAG = "DetalleMascotaFragment"
     }
 
-    private fun uploadImage(imageUri: Uri) {
-        val storageRef = FirebaseStorage.getInstance().reference
-        val imagesRef = storageRef.child("images/${mascotactual.nombre}")
-
-        val uploadTask = imagesRef.putFile(imageUri)
-
-        uploadTask.addOnSuccessListener { taskSnapshot ->
-            Log.d(TAG, "Image uploaded successfully")
-            // Get the download URL of the uploaded image
-            imagesRef.downloadUrl.addOnSuccessListener { uri ->
-                val imageUrl = uri.toString()
-                // Now, you can store this URL in your Mascota object and in your database
-                // For example, you can update the Mascota document with this URL
-                //updateMascotaImageUrl(imageUrl)
+    private fun deleteMascota() {
+        db.collection("prueba_img").document(mascotactual.nombre)
+            .delete()
+            .addOnSuccessListener {
+                send_message(this.MascotaDetalleView, "Mascota eliminada")
             }
-        }.addOnFailureListener { exception ->
-            Log.e(TAG, "Error uploading image", exception)
-        }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error deleting document", e)
+                Toast.makeText(requireContext(), "Failed to delete Mascota: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
+    private fun modifyMascotaImage() {
+
+        selectImage()
+
+
+    }
+    private val imagePickerLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        selectedImageUri = uri
+        // Update UI or show a preview of the selected image if needed
+        Toast.makeText(requireContext(), "Image selected: $uri", Toast.LENGTH_SHORT).show()
+        if (selectedImageUri != null) {
+            uploadImageAndSaveMascota() // Llamo la funcion de store solo si selecciono una foto
+        } else {
+            // Si no selecciono foto, mantengo la actual
+            uploadedImageUrl = mascotactual.imageUrl.toString()
+
+        }
+        uploadedImageUrl = if (selectedImageUri != null) uri.toString() else mascotactual.imageUrl.toString()
+        val updates = hashMapOf<String, Any>(
+            "imageUrl" to uploadedImageUrl
+        )
+        db.collection("prueba_img").document(mascotactual.nombre)
+            .update(updates)
+            .addOnSuccessListener {
+                // Update successful
+                send_message(this.MascotaDetalleView, "Mascota modificada")
+            }
+            .addOnFailureListener { e ->
+                // Handle any errors
+                Log.e(TAG, "Error updating document", e)
+                Toast.makeText(requireContext(), "Failed to update Mascota: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+
+    }
+    private fun selectImage() {
+        imagePickerLauncher.launch(AddMascFragment.REQUEST_IMAGE_PICK)
+    }
+
+    private fun uploadImageAndSaveMascota() {
+        val imageRef = storageRef.child("images/${System.currentTimeMillis()}.jpg")
+        imageRef.putFile(selectedImageUri!!)
+            .addOnSuccessListener { uploadTask ->
+                uploadTask.storage.downloadUrl.addOnSuccessListener { imageUrl ->
+                    uploadedImageUrl = imageUrl.toString() // Store the image URL
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Error uploading image: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
 }
